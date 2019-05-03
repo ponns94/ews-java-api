@@ -142,7 +142,7 @@ public class EwsSSLProtocolSocketFactory extends SSLConnectionSocketFactory {
   public static SSLContext createSslContext(TrustManager trustManager)
     throws GeneralSecurityException {
     EwsX509TrustManager x509TrustManager = new EwsX509TrustManager(null, trustManager);
-    SSLContext sslContext = SSLContexts.createDefault();
+    SSLContext sslContext = SSLContexts.createSystemDefault();
     sslContext.init(
       null,
       new TrustManager[] { x509TrustManager },
