@@ -35,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLReporter;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
@@ -51,6 +52,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
+
 /**
  * Defines the EwsXmlReader class.
  */
@@ -62,6 +66,8 @@ public class EwsXmlReader {
    * The Read write buffer size.
    */
   private static final int ReadWriteBufferSize = 4096;
+
+  private static final boolean IgnoreErrorsDefault = true;
 
   /**
    * The xml reader.
@@ -85,7 +91,17 @@ public class EwsXmlReader {
    * @throws Exception on error
    */
   public EwsXmlReader(InputStream stream) throws Exception {
-    this.xmlReader = initializeXmlReader(stream);
+    this.xmlReader = initializeXmlReader(stream, IgnoreErrorsDefault);
+  }
+
+  /**
+   * Initializes a new instance of the EwsXmlReader class.
+   *
+   * @param stream the stream
+   * @throws Exception on error
+   */
+  public EwsXmlReader(InputStream stream, boolean ignoreErrors) throws Exception {
+    this.xmlReader = initializeXmlReader(stream, ignoreErrors);
   }
 
   /**
@@ -95,11 +111,18 @@ public class EwsXmlReader {
    * @return An XML reader to use.
    * @throws Exception on error
    */
-  protected XMLEventReader initializeXmlReader(InputStream stream) throws Exception {
+  protected XMLEventReader initializeXmlReader(InputStream stream, boolean ignoreErrors) throws Exception {
     XMLInputFactory inputFactory = XMLInputFactory.newInstance();
     inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 
-    return inputFactory.createXMLEventReader(stream);
+    XMLEventReader reader = inputFactory.createXMLEventReader(stream);
+    if(ignoreErrors)
+    {
+      XMLErrorReporter reporter = (XMLErrorReporter) reader.getProperty (Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY);
+      reporter.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE, true);
+    }
+
+    return reader;
   }
 
 
